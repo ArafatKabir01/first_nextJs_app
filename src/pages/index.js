@@ -1,11 +1,58 @@
 import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from '@next/font/google'
-import styles from '@/styles/Home.module.css'
-
-const inter = Inter({ subsets: ['latin'] })
+import { useEffect, useRef, useState } from 'react';
+import "node_modules/video-react/dist/video-react.css";
+import { Player } from 'video-react';
 
 export default function Home() {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [emailPosition, setEmailPosition] = useState({ x: 0, y: 0, directionX: 1, directionY: 1 });
+  const videoRef = useRef(null);
+console.log(emailPosition)
+  useEffect(() => {
+    let timeoutId;
+    if (isPlaying) {
+      const updateEmailPosition = () => {
+        const videoRect = videoRef.current.getBoundingClientRect();
+        console.log(videoRect)
+        const x = emailPosition.x + emailPosition.directionX;
+        const y = emailPosition.y + emailPosition.directionY;
+        if (x + videoRect.width >= videoRect.right || x <= videoRect.left) {
+          setEmailPosition({
+            x:20,
+            y,
+            directionX: -emailPosition.directionX,
+            directionY: emailPosition.directionY,
+          });
+        }
+        if (y + videoRect.height >= videoRect.bottom || y <= videoRect.top) {
+          setEmailPosition({
+            x,
+            y:20,
+            directionX: emailPosition.directionX,
+            directionY: -emailPosition.directionY,
+          });
+        }  if (emailPosition.x + 80 > videoRect.width || emailPosition.x + 80 > videoRect.height) {
+          console.log(true)
+          setEmailPosition({
+            x:-10,
+            y,
+            directionX: emailPosition.directionX,
+            directionY: -emailPosition.directionY,
+          });
+        } else {
+          setEmailPosition({ x:emailPosition.x+40, y:emailPosition.x+40, directionX: emailPosition.directionX, directionY: emailPosition.directionY });
+        }
+      };
+      timeoutId = setInterval(updateEmailPosition, 1400);
+    } else {
+      clearInterval(timeoutId);
+    }
+
+    return () => {
+      clearInterval(timeoutId);
+    };
+  }, [isPlaying, emailPosition]);
+
   return (
     <>
       <Head>
@@ -14,110 +61,57 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>src/pages/index.js</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
-          </div>
+      <div style={{
+       position: "relative" ,
+       zIndex:1,
+       width:"900px",
+       height:"600px",
+      }}>
+     
+      {/* <video
+      style={{
+       width:"900px",
+       height:"600px",
+      }}
+        ref={videoRef}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => setIsPlaying(false)}
+        controls
+      >
+        
+        <source src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video> */}
+      <Player
+      ref={videoRef}
+      onPlay={() => setIsPlaying(true)}
+      onPause={() => setIsPlaying(false)}
+      onEnded={() => setIsPlaying(false)}
+          style={{
+            width: "900px",
+            height: "600px",
+          }}
+          
+          playsInline
+          poster="/assets/poster.png"
+          src="https://media.w3.org/2010/05/sintel/trailer_hd.mp4"
+        />
+      {isPlaying && (
+        <div
+          style={{
+            position: "absolute",
+            top: `${videoRef.current.offsetTop + emailPosition.y +10 }px`,
+            left: `${videoRef.current.offsetLeft + emailPosition.x +10}px`,
+            color:"red",
+            padding: "10px",
+            zIndex:2,
+          }}
+        >
+          Email: info@example.com
         </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
-          </div>
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+      )}
+    </div>
     </>
   )
 }
